@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel - Phone Bazar</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -43,31 +42,30 @@
     <div id="view-products" class="hidden space-y-4">
       <!-- Add Product Form -->
       <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
-        <h3 class="font-black text-sm mb-3 flex items-center gap-1.5"><i class="fa-solid fa-plus text-indigo-600"></i> Add New Phone / Product</h3>
+        <h3 class="font-black text-sm mb-3 flex items-center gap-1.5"><i class="fa-solid fa-plus text-indigo-600"></i> Add New Phone</h3>
         <form onsubmit="event.preventDefault(); addProduct();" class="space-y-2.5">
           <input type="text" id="p-title" required placeholder="Phone Name (e.g. Honor 200)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
           <input type="number" id="p-price" required placeholder="Price in BDT (e.g. 42000)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
           
-          <!-- Category Select -->
           <div class="grid grid-cols-2 gap-2">
-            <select id="p-brand-select" onchange="toggleCustomBrand()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
-              <option value="Apple">Apple</option>
+            <select id="p-brand-select" onchange="toggleCustomBrand('p-brand-select', 'p-brand-custom')" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
               <option value="Samsung">Samsung</option>
+              <option value="Apple">Apple</option>
               <option value="Xiaomi">Xiaomi</option>
+              <option value="Honor">Honor</option>
+              <option value="Google Pixel">Google Pixel</option>
               <option value="Custom">+ Custom Category</option>
             </select>
-            <input type="text" id="p-brand-custom" placeholder="Type Brand (e.g. Honor)" class="hidden w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
+            <input type="text" id="p-brand-custom" placeholder="Type Brand Name" class="hidden w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
           </div>
 
-          <!-- Gallery Image Picker -->
           <div class="bg-gray-50 border border-gray-200 rounded-xl p-2.5">
-            <label class="block text-[11px] font-bold text-gray-600 mb-1">Select Image from Gallery:</label>
-            <input type="file" id="p-file" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-600">
-            <p class="text-[10px] text-gray-400 mt-1">Or paste image URL below:</p>
-            <input type="text" id="p-img-url" placeholder="https://..." class="w-full bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs outline-none mt-1">
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Select Gallery Image or Paste URL:</label>
+            <input type="file" id="p-file" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-600 mb-1">
+            <input type="text" id="p-img-url" placeholder="Image URL (https://...)" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs outline-none">
           </div>
 
-          <input type="number" id="p-stock" value="10" placeholder="Stock Units" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
+          <input type="number" id="p-stock" value="10" placeholder="Stock Quantity" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
           <button type="submit" id="add-prod-btn" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs">Save Product</button>
         </form>
       </div>
@@ -77,30 +75,74 @@
     </div>
   </div>
 
+  <!-- EDIT PRODUCT MODAL -->
+  <div id="edit-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl">
+      <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-3">
+        <h3 class="font-black text-sm">Edit Product Info</h3>
+        <button onclick="closeEditModal()" class="text-gray-400 font-bold"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="event.preventDefault(); updateProduct();" class="space-y-2.5">
+        <input type="hidden" id="edit-id">
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">Product Title:</label>
+          <input type="text" id="edit-title" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">Price (BDT):</label>
+          <input type="number" id="edit-price" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">Brand/Category:</label>
+          <input type="text" id="edit-brand" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">Stock Quantity:</label>
+          <input type="number" id="edit-stock" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium outline-none">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">Image (Gallery or URL):</label>
+          <input type="file" id="edit-file" accept="image/*" class="w-full text-xs mb-1">
+          <input type="text" id="edit-img-url" placeholder="Image URL" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none">
+        </div>
+        <button type="submit" id="update-btn" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs mt-2">Update Product</button>
+      </form>
+    </div>
+  </div>
+
   <script>
     const PASSCODE = '1234';
-    let base64Image = '';
+    let base64Add = '', base64Edit = '', allProducts = [];
 
-    // Convert gallery image to Base64
-    document.addEventListener('change', function(e) {
-      if(e.target && e.target.id === 'p-file') {
-        const file = e.target.files[0];
-        if(file) {
-          const reader = new FileReader();
-          reader.onload = function(evt) { base64Image = evt.target.result; }
-          reader.readAsDataURL(file);
-        }
-      }
-    });
+    document.getElementById('p-file').addEventListener('change', e => compressAndConvert(e.target.files[0], res => base64Add = res));
+    document.getElementById('edit-file').addEventListener('change', e => compressAndConvert(e.target.files[0], res => base64Edit = res));
 
-    function toggleCustomBrand() {
-      const select = document.getElementById('p-brand-select');
-      const customInput = document.getElementById('p-brand-custom');
-      if(select.value === 'Custom') {
-        customInput.classList.remove('hidden');
-      } else {
-        customInput.classList.add('hidden');
-      }
+    // Compress Image to avoid broken image issues
+    function compressAndConvert(file, callback) {
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          const max = 400;
+          if (w > h && w > max) { h *= max / w; w = max; }
+          else if (h > max) { w *= max / h; h = max; }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function toggleCustomBrand(selectId, inputId) {
+      const select = document.getElementById(selectId);
+      const input = document.getElementById(inputId);
+      input.classList.toggle('hidden', select.value !== 'Custom');
     }
 
     function checkPasscode() {
@@ -124,7 +166,7 @@
         const res = await fetch('/api/orders');
         const orders = await res.json();
         const container = document.getElementById('view-orders');
-        if(!orders.length) { container.innerHTML = '<p class="text-center py-6 text-gray-400 text-xs font-medium">No orders yet.</p>'; return; }
+        if(!orders.length) { container.innerHTML = '<p class="text-center py-6 text-gray-400 text-xs">No orders yet.</p>'; return; }
         container.innerHTML = orders.map(o => `
           <div class="bg-white border border-gray-200 rounded-2xl p-3.5 shadow-sm space-y-2">
             <div class="flex justify-between items-center text-xs border-b pb-2">
@@ -154,21 +196,66 @@
     async function fetchProducts() {
       try {
         const res = await fetch('/api/phones');
-        const prods = await res.json();
+        allProducts = await res.json();
         const container = document.getElementById('product-list');
-        container.innerHTML = prods.map(p => `
+        container.innerHTML = allProducts.map(p => `
           <div class="bg-white border border-gray-200 rounded-2xl p-3 flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-3">
-              <img src="${p.image || 'https://via.placeholder.com/80'}" class="w-10 h-10 object-contain rounded-lg border">
+              <img src="${p.image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200'}" class="w-10 h-10 object-contain rounded-lg border bg-gray-50">
               <div>
                 <h4 class="font-bold text-xs">${p.title} - ৳${Number(p.price).toLocaleString()}</h4>
-                <p class="text-[10px] text-gray-500">Brand: <b>${p.brand}</b> | Stock: <b>${p.stock || 10}</b></p>
+                <p class="text-[10px] text-gray-500">Brand: <b>${p.brand}</b> | Stock: <b>${p.stock || 0}</b></p>
               </div>
             </div>
-            <button onclick="deleteProduct('${p.id}')" class="text-red-500 font-bold text-xs px-2.5 py-1 bg-red-50 rounded-lg">Delete</button>
+            <div class="flex items-center gap-1.5">
+              <button onclick="openEditModal('${p.id}')" class="text-indigo-600 font-bold text-xs px-2.5 py-1 bg-indigo-50 rounded-lg"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+              <button onclick="deleteProduct('${p.id}')" class="text-red-500 font-bold text-xs px-2.5 py-1 bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+            </div>
           </div>
         `).join('');
       } catch(e) {}
+    }
+
+    function openEditModal(id) {
+      const p = allProducts.find(x => x.id === id);
+      if(!p) return;
+      document.getElementById('edit-id').value = p.id;
+      document.getElementById('edit-title').value = p.title;
+      document.getElementById('edit-price').value = p.price;
+      document.getElementById('edit-brand').value = p.brand;
+      document.getElementById('edit-stock').value = p.stock || 10;
+      document.getElementById('edit-img-url').value = p.image || '';
+      base64Edit = '';
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.add('hidden');
+    }
+
+    async function updateProduct() {
+      const id = document.getElementById('edit-id').value;
+      const title = document.getElementById('edit-title').value;
+      const price = Number(document.getElementById('edit-price').value);
+      const brand = document.getElementById('edit-brand').value;
+      const stock = Number(document.getElementById('edit-stock').value);
+      const imgUrl = document.getElementById('edit-img-url').value;
+
+      const finalImg = base64Edit || imgUrl || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200';
+
+      const btn = document.getElementById('update-btn');
+      btn.innerText = "Updating..."; btn.disabled = true;
+
+      await fetch('/api/phones/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, price, brand, stock, image: finalImg })
+      });
+
+      btn.innerText = "Update Product"; btn.disabled = false;
+      closeEditModal();
+      fetchProducts();
+      alert('Product Updated Successfully!');
     }
 
     async function addProduct() {
@@ -180,13 +267,12 @@
       const stock = document.getElementById('p-stock').value;
 
       const brand = selectBrand === 'Custom' ? customBrand : selectBrand;
-      const finalImg = base64Image || imgUrl || 'https://via.placeholder.com/150';
+      const finalImg = base64Add || imgUrl || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200';
 
       if(!title || !price || !brand) return alert('Fill name, price and category!');
 
       const btn = document.getElementById('add-prod-btn');
-      btn.innerText = "Saving...";
-      btn.disabled = true;
+      btn.innerText = "Saving..."; btn.disabled = true;
 
       await fetch('/api/phones', {
         method: 'POST',
@@ -194,13 +280,11 @@
         body: JSON.stringify({ title, price: Number(price), brand, image: finalImg, stock: Number(stock) })
       });
 
-      btn.innerText = "Save Product";
-      btn.disabled = false;
-      base64Image = '';
+      btn.innerText = "Save Product"; btn.disabled = false;
+      base64Add = '';
       document.getElementById('p-title').value = '';
       document.getElementById('p-price').value = '';
       document.getElementById('p-brand-custom').value = '';
-      document.getElementById('p-file').value = '';
       fetchProducts();
       alert('Product Added Successfully!');
     }

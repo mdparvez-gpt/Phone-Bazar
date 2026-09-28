@@ -1,24 +1,19 @@
 const express = require('express');
-const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
-
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Supabase Credentials Connected Directly
-const SUPABASE_URL = 'https://ijygpiafxvyydzqsqhzo.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_C_In2UGnHsPgbuvgcgc7KQ_sCtHn_FV';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xyz.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'your-key';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// --- API ROUTES ---
-
-// 1. Get Phones
+// Get All Products
 app.get('/api/phones', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('phones').select('*').order('id', { ascending: false });
+    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     if (error) throw error;
     res.json(data || []);
   } catch (err) {
@@ -26,66 +21,86 @@ app.get('/api/phones', async (req, res) => {
   }
 });
 
-// 2. Get Orders (Admin)
-app.get('/api/orders', async (req, res) => {
+// Add Product
+app.post('/api/phones', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    const { title, price, brand, image, stock } = req.body;
+    const { data, error } = await supabase.from('products').insert([{ title, price, brand, image, stock: stock || 10 }]).select();
     if (error) throw error;
-    
-    // Format JSON keys to match frontend expectation
-    const formattedOrders = (data || []).map(o => ({
-      id: o.id,
-      customer: o.customer,
-      paymentMethod: o.payment_method,
-      items: o.items,
-      total: o.total,
-      status: o.status,
-      createdAt: o.created_at
-    }));
-
-    res.json(formattedOrders);
+    res.json(data[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 3. Create Order
-app.post('/api/orders', async (req, res) => {
+// Edit/Update Product (Name, Price, Category, Image, Stock)
+app.put('/api/phones/:id', async (req, res) => {
   try {
-    const orderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
-    const { customer, paymentMethod, items, total } = req.body;
-
-    const { data, error } = await supabase.from('orders').insert([{
-      id: orderId,
-      customer: customer,
-      payment_method: paymentMethod,
-      items: items,
-      total: total,
-      status: 'Pending'
-    }]);
-
+    const { id } = req.params;
+    const { title, price, brand, image, stock } = req.body;
+    const { data, error } = await supabase
+      .from('products')
+      .update({ title, price, brand, image, stock })
+      .eq('id', id)
+      .select();
     if (error) throw error;
-    res.json({ success: true, orderId });
+    res.json({ success: true, data: data[0] });
   } catch (err) {
-    console.error("Order Insert Error:", err);
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// 4. Update Order Status
+// Delete Product
+app.delete('/api/phones/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Orders APIs
+app.get('/api/orders', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { customer, items, total, paymentMethod } = req.body;
+    const { data, error } = await supabase.from('orders').insert([{
+      customer,
+      items,
+      total,
+      payment_method: paymentMethod,
+      status: 'Pending'
+    }]).select();
+    if (error) throw error;
+    res.json({ success: true, id: data[0].id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.patch('/api/orders/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-
     const { error } = await supabase.from('orders').update({ status }).eq('id', id);
     if (error) throw error;
-
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-app.listen(PORT, () => console.log(`🚀 Supabase Powered Server Running on http://127.0.0.1:${PORT}`));
-module.exports = app;
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
