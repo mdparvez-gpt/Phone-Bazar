@@ -23,14 +23,24 @@
     </button>
   </header>
 
-  <!-- Search & Filter -->
-  <main class="max-w-4xl mx-auto px-4 mt-4">
-    <div class="mb-4">
+  <!-- Search & Filters Section -->
+  <main class="max-w-4xl mx-auto px-4 mt-4 space-y-3">
+    <!-- Search Bar -->
+    <div>
       <input type="text" id="search-input" oninput="filterProducts()" placeholder="Search phones..." class="w-full bg-white border border-gray-200 rounded-2xl px-4 py-3 text-sm font-medium outline-none focus:border-indigo-500 shadow-sm">
     </div>
 
-    <!-- Dynamic Categories -->
-    <div id="category-container" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+    <!-- Price Range Filter Bar -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm flex items-center gap-2 text-xs">
+      <span class="font-bold text-gray-600"><i class="fa-solid fa-filter text-indigo-600"></i> Price:</span>
+      <input type="number" id="min-price" oninput="filterProducts()" placeholder="Min ৳" class="w-1/2 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 outline-none font-semibold">
+      <span class="text-gray-400 font-bold">-</span>
+      <input type="number" id="max-price" oninput="filterProducts()" placeholder="Max ৳" class="w-1/2 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 outline-none font-semibold">
+      <button onclick="clearPriceFilter()" class="text-xs text-red-500 font-bold px-1.5 py-1 hover:underline">Reset</button>
+    </div>
+
+    <!-- Dynamic Brand Categories -->
+    <div id="category-container" class="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
       <button onclick="setCategory('All')" class="cat-btn bg-indigo-600 text-white font-bold px-5 py-2 rounded-2xl text-xs whitespace-nowrap shadow-sm">All</button>
     </div>
 
@@ -109,17 +119,28 @@
       filterProducts();
     }
 
+    function clearPriceFilter() {
+      document.getElementById('min-price').value = '';
+      document.getElementById('max-price').value = '';
+      filterProducts();
+    }
+
     function filterProducts() {
       const q = document.getElementById('search-input').value.toLowerCase();
+      const minP = Number(document.getElementById('min-price').value) || 0;
+      const maxP = Number(document.getElementById('max-price').value) || Infinity;
+
       const filtered = allProducts.filter(p => {
+        const price = Number(p.price) || 0;
         const matchCat = selectedCategory === 'All' || p.brand === selectedCategory;
         const matchQ = p.title.toLowerCase().includes(q) || (p.brand && p.brand.toLowerCase().includes(q));
-        return matchCat && matchQ;
+        const matchPrice = price >= minP && price <= maxP;
+        return matchCat && matchQ && matchPrice;
       });
 
       const grid = document.getElementById('product-grid');
       if(!filtered.length) {
-        grid.innerHTML = `<p class="col-span-full text-center py-10 text-gray-400 font-medium text-sm">No products found</p>`;
+        grid.innerHTML = `<p class="col-span-full text-center py-10 text-gray-400 font-medium text-sm">No products match your filters</p>`;
         return;
       }
 
