@@ -4,289 +4,211 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phone Bazar</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #f8fafc; color: #0f172a; padding-bottom: 80px; }
-    
-    header { background: #ffffff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 40; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-weight: 800; font-size: 18px; color: #0f172a; text-decoration: none; display: flex; align-items: center; gap: 8px; }
-    .logo-badge { background: #4f46e5; color: #fff; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
-    
-    .cart-btn { background: #0f172a; color: #fff; border: none; padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .cart-badge { background: #6366f1; color: #fff; padding: 2px 6px; border-radius: 10px; font-size: 11px; }
-
-    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
-    
-    .search-box { width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 14px; font-size: 14px; margin-bottom: 12px; outline: none; background: #fff; }
-    .search-box:focus { border-color: #6366f1; }
-
-    .cat-list { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
-    .cat-btn { background: #fff; border: 1px solid #cbd5e1; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #475569; white-space: nowrap; cursor: pointer; }
-    .cat-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
-
-    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    @media (min-width: 640px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 768px) { .grid { grid-template-columns: repeat(4, 1fr); } }
-
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .img-wrapper { width: 100%; height: 130px; border-radius: 12px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px; }
-    .card img { width: 100%; height: 100%; object-fit: cover; }
-    
-    .card-brand { font-size: 10px; font-weight: 800; color: #6366f1; text-transform: uppercase; }
-    .card-title { font-size: 13px; font-weight: 700; color: #0f172a; margin: 2px 0 4px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-    .card-price { font-size: 15px; font-weight: 800; color: #4f46e5; }
-    .add-btn { background: #0f172a; color: #fff; border: none; padding: 10px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; margin-top: 10px; width: 100%; transition: background 0.2s; }
-    .add-btn:active { background: #4f46e5; }
-
-    .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 50; display: none; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(4px); }
-    .modal.open { display: flex; }
-    .modal-content { background: #fff; border-radius: 24px; width: 100%; max-width: 420px; padding: 20px; max-height: 90vh; overflow-y: auto; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
-    .close-btn { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; }
-
-    .input-group { margin-bottom: 10px; }
-    .input-group label { font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px; }
-    .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 13px; outline: none; background: #f8fafc; }
-    .input-group textarea { height: 60px; resize: none; }
-
-    .payment-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0; }
-    .payment-label { border: 1px solid #cbd5e1; padding: 8px; border-radius: 12px; text-align: center; font-size: 11px; font-weight: 700; cursor: pointer; }
-
-    .btn-submit { width: 100%; background: #4f46e5; color: #fff; border: none; padding: 12px; border-radius: 14px; font-size: 14px; font-weight: 800; cursor: pointer; margin-top: 10px; }
-  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-gray-100 text-gray-900 min-h-screen pb-12">
 
-  <header>
-    <a href="#" class="logo"><div class="logo-badge">P</div> Phone Bazar</a>
-    <button onclick="toggleModal('cart-modal', true)" class="cart-btn">
-      🛒 Cart <span id="cart-count" class="cart-badge">0</span>
+  <!-- Header -->
+  <header class="bg-white sticky top-0 z-40 border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
+    <div class="flex items-center gap-2">
+      <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl">P</div>
+      <h1 class="font-extrabold text-xl text-gray-900 tracking-tight">Phone Bazar</h1>
+    </div>
+    <button onclick="toggleModal('cart-modal', true)" class="bg-gray-900 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 relative text-sm">
+      <i class="fa-solid fa-cart-shopping text-xs"></i>
+      <span>Cart</span>
+      <span id="cart-count" class="bg-indigo-500 text-white text-xs px-2 py-0.5 rounded-full font-bold ml-1">0</span>
     </button>
   </header>
 
-  <div class="container">
-    <input type="text" id="search" oninput="renderPhones()" placeholder="Search phones..." class="search-box">
-    
-    <div class="cat-list">
-      <button onclick="filterCategory('All')" class="cat-btn active" data-cat="All">All</button>
-      <button onclick="filterCategory('Apple')" class="cat-btn" data-cat="Apple">Apple</button>
-      <button onclick="filterCategory('Samsung')" class="cat-btn" data-cat="Samsung">Samsung</button>
-      <button onclick="filterCategory('Xiaomi')" class="cat-btn" data-cat="Xiaomi">Xiaomi</button>
+  <!-- Search & Filter -->
+  <main class="max-w-4xl mx-auto px-4 mt-4">
+    <div class="mb-4">
+      <input type="text" id="search-input" oninput="filterProducts()" placeholder="Search phones..." class="w-full bg-white border border-gray-200 rounded-2xl px-4 py-3 text-sm font-medium outline-none focus:border-indigo-500 shadow-sm">
     </div>
 
-    <div id="phone-grid" class="grid"></div>
-  </div>
+    <!-- Dynamic Categories -->
+    <div id="category-container" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <button onclick="setCategory('All')" class="cat-btn bg-indigo-600 text-white font-bold px-5 py-2 rounded-2xl text-xs whitespace-nowrap shadow-sm">All</button>
+    </div>
+
+    <!-- Products Grid -->
+    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+      <p class="col-span-full text-center py-10 text-gray-400 font-medium text-sm">Loading products...</p>
+    </div>
+  </main>
 
   <!-- Cart Modal -->
-  <div id="cart-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 style="font-size: 16px; font-weight: 800;">Your Cart</h3>
-        <button class="close-btn" onclick="toggleModal('cart-modal', false)">&times;</button>
+  <div id="cart-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 max-h-[90vh] flex flex-col shadow-2xl">
+      <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+        <h3 class="font-black text-lg">Your Cart</h3>
+        <button onclick="toggleModal('cart-modal', false)" class="text-gray-400 hover:text-gray-600 font-bold text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div id="cart-items" style="margin-bottom: 12px;"></div>
-      <div style="font-weight: 800; font-size: 15px; display: flex; justify-content: space-between; margin-bottom: 12px;">
-        <span>Total:</span>
-        <span style="color: #4f46e5;">৳<span id="cart-total">0</span></span>
+      <div id="cart-items" class="flex-1 overflow-y-auto py-3 space-y-3"></div>
+      <div class="border-t border-gray-100 pt-3">
+        <div class="flex justify-between text-sm font-bold mb-3">
+          <span>Total:</span>
+          <span id="cart-total" class="text-indigo-600 text-base">৳0</span>
+        </div>
+        <button onclick="toggleModal('cart-modal', false); toggleModal('checkout-modal', true);" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-2xl text-sm transition">Checkout Now</button>
       </div>
-      <button onclick="openCheckout()" class="btn-submit">Checkout Now</button>
     </div>
   </div>
 
   <!-- Checkout Modal -->
-  <div id="checkout-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 style="font-size: 16px; font-weight: 800;">Checkout Express</h3>
-        <button class="close-btn" onclick="toggleModal('checkout-modal', false)">&times;</button>
+  <div id="checkout-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-4">
+        <h3 class="font-black text-lg">Checkout Order</h3>
+        <button onclick="toggleModal('checkout-modal', false)" class="text-gray-400 font-bold"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      
-      <div class="input-group">
-        <label>Full Name *</label>
-        <input type="text" id="cust-name" placeholder="Md Sabbir">
-      </div>
-      
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <div class="input-group">
-          <label>Phone Number *</label>
-          <input type="tel" id="cust-phone" placeholder="017XXXXXXXX">
+      <form onsubmit="event.preventDefault(); processOrder();" class="space-y-3">
+        <input type="text" id="cust-name" required placeholder="Full Name" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-indigo-600">
+        <input type="tel" id="cust-phone" required placeholder="Phone Number" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-indigo-600">
+        <select id="cust-city" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold outline-none">
+          <option value="Inside Dhaka">Inside Dhaka (৳60 Delivery)</option>
+          <option value="Outside Dhaka">Outside Dhaka (৳120 Delivery)</option>
+        </select>
+        <textarea id="cust-address" required placeholder="Full Address" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-indigo-600"></textarea>
+        <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+          <label class="flex items-center gap-2 text-xs font-bold text-gray-700">
+            <input type="radio" name="payment_method" value="Cash on Delivery" checked class="accent-indigo-600"> Cash on Delivery
+          </label>
         </div>
-        <div class="input-group">
-          <label>Location *</label>
-          <select id="cust-city" onchange="updateCart()">
-            <option value="Inside Dhaka">Inside Dhaka (৳60)</option>
-            <option value="Outside Dhaka">Outside Dhaka (৳120)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="input-group">
-        <label>Address *</label>
-        <textarea id="cust-address" placeholder="Moghbazar, Dhaka"></textarea>
-      </div>
-
-      <label style="font-size: 11px; font-weight: 700; color: #475569;">Payment Method</label>
-      <div class="payment-options">
-        <label class="payment-label"><input type="radio" name="payment_method" value="Cash on Delivery" checked> COD</label>
-        <label class="payment-label" style="color: #db2777;"><input type="radio" name="payment_method" value="bKash"> bKash</label>
-        <label class="payment-label" style="color: #ea580c;"><input type="radio" name="payment_method" value="Nagad"> Nagad</label>
-      </div>
-
-      <div style="background: #f8fafc; padding: 12px; border-radius: 14px; font-size: 12px; margin-bottom: 10px; border: 1px solid #e2e8f0;">
-        <div style="display: flex; justify-content: space-between;"><span>Subtotal:</span><span>৳<span id="summary-subtotal">0</span></span></div>
-        <div style="display: flex; justify-content: space-between;"><span>Delivery:</span><span>৳<span id="summary-delivery">60</span></span></div>
-        <div style="display: flex; justify-content: space-between; font-weight: 800; border-top: 1px solid #e2e8f0; padding-top: 6px; margin-top: 6px; font-size: 14px;"><span>Total:</span><span style="color: #4f46e5;">৳<span id="summary-total">0</span></span></div>
-      </div>
-
-      <button id="order-btn" onclick="processOrder()" class="btn-submit">Place Order Now</button>
-    </div>
-  </div>
-
-  <!-- Success Modal -->
-  <div id="success-modal" class="modal">
-    <div class="modal-content" style="text-align: center;">
-      <div style="width: 52px; height: 52px; background: #dcfce7; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 0 auto 12px;">✓</div>
-      <h3 style="font-size: 17px; font-weight: 800; margin-bottom: 6px;">Order Placed Successfully!</h3>
-      <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">Order ID: <b id="res-order-id" style="color: #4f46e5;"></b></p>
-      <button onclick="toggleModal('success-modal', false)" class="btn-submit">Continue Shopping</button>
+        <button type="submit" id="order-btn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-xs transition">Place Order Now</button>
+      </form>
     </div>
   </div>
 
   <script>
-    let phones = [];
-    let cart = [];
-    let selectedCategory = 'All';
+    let allProducts = [], cart = [], selectedCategory = 'All';
 
-    // Auto Image Fallback Function
-    function getValidImage(url, brand) {
-      if (url && url.startsWith('http') && !url.includes('via.placeholder.com')) return url;
-      const b = (brand || '').toLowerCase();
-      if (b.includes('apple')) return 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=300&q=80';
-      if (b.includes('samsung')) return 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=300&q=80';
-      return 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&q=80';
-    }
-
-    async function fetchPhones() {
+    async function fetchProducts() {
       try {
         const res = await fetch('/api/phones');
-        phones = await res.json();
-        renderPhones();
+        allProducts = await res.json();
+        renderCategories();
+        filterProducts();
       } catch(e) {}
     }
 
-    function filterCategory(cat) {
+    function renderCategories() {
+      const brands = ['All', ...new Set(allProducts.map(p => p.brand).filter(Boolean))];
+      const container = document.getElementById('category-container');
+      container.innerHTML = brands.map(b => `
+        <button onclick="setCategory('${b}')" class="cat-btn ${selectedCategory === b ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-700'} font-bold px-4 py-2 rounded-2xl text-xs whitespace-nowrap shadow-sm">${b}</button>
+      `).join('');
+    }
+
+    function setCategory(cat) {
       selectedCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.cat === cat);
-      });
-      renderPhones();
+      renderCategories();
+      filterProducts();
     }
 
-    function renderPhones() {
-      const search = (document.getElementById('search').value || '').toLowerCase();
-      const filtered = phones.filter(p => {
-        const matchesSearch = p.title.toLowerCase().includes(search) || p.brand.toLowerCase().includes(search);
-        const matchesCat = selectedCategory === 'All' || p.brand.toLowerCase() === selectedCategory.toLowerCase();
-        return matchesSearch && matchesCat;
+    function filterProducts() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const filtered = allProducts.filter(p => {
+        const matchCat = selectedCategory === 'All' || p.brand === selectedCategory;
+        const matchQ = p.title.toLowerCase().includes(q) || (p.brand && p.brand.toLowerCase().includes(q));
+        return matchCat && matchQ;
       });
 
-      document.getElementById('phone-grid').innerHTML = filtered.map(p => {
-        const imgSrc = getValidImage(p.image, p.brand);
-        return `
-          <div class="card">
-            <div>
-              <div class="img-wrapper">
-                <img src="${imgSrc}" alt="${p.title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&q=80'">
-              </div>
-              <div class="card-brand">${p.brand}</div>
-              <div class="card-title">${p.title}</div>
-              <div class="card-price">৳${Number(p.price).toLocaleString()}</div>
+      const grid = document.getElementById('product-grid');
+      if(!filtered.length) {
+        grid.innerHTML = `<p class="col-span-full text-center py-10 text-gray-400 font-medium text-sm">No products found</p>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="bg-white border border-gray-200/80 rounded-2xl p-3 flex flex-col justify-between shadow-sm">
+          <div>
+            <div class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden mb-2.5 border border-gray-100 flex items-center justify-center">
+              <img src="${p.image || 'https://via.placeholder.com/150'}" class="max-h-full max-w-full object-contain">
             </div>
-            <button onclick="addToCart(${p.id})" class="add-btn">Add to Cart</button>
+            <span class="text-[10px] font-black uppercase tracking-wider text-indigo-500">${p.brand || 'Phone'}</span>
+            <h3 class="font-bold text-xs text-gray-900 line-clamp-1 mt-0.5">${p.title}</h3>
+            <p class="font-extrabold text-sm text-gray-900 mt-1">৳${Number(p.price).toLocaleString()}</p>
           </div>
-        `;
-      }).join('');
-    }
-
-    function addToCart(id) {
-      const phone = phones.find(p => p.id === id);
-      const existing = cart.find(i => i.id === id);
-      if(existing) existing.qty += 1;
-      else cart.push({ ...phone, qty: 1 });
-      updateCart();
-      toggleModal('cart-modal', true);
-    }
-
-    function updateCart() {
-      const totalQty = cart.reduce((s, i) => s + i.qty, 0);
-      document.getElementById('cart-count').innerText = totalQty;
-
-      const subtotal = cart.reduce((s, i) => s + (Number(i.price) * i.qty), 0);
-      document.getElementById('cart-total').innerText = subtotal.toLocaleString();
-      document.getElementById('summary-subtotal').innerText = subtotal.toLocaleString();
-      
-      const city = document.getElementById('cust-city').value;
-      const delivery = city === 'Inside Dhaka' ? 60 : 120;
-      document.getElementById('summary-delivery').innerText = delivery;
-      document.getElementById('summary-total').innerText = (subtotal + delivery).toLocaleString();
-
-      document.getElementById('cart-items').innerHTML = cart.map(i => `
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 8px 0; font-size: 12px;">
-          <div><b>${i.title}</b><br><span style="color: #4f46e5; font-weight: 700;">৳${Number(i.price).toLocaleString()}</span></div>
-          <div>Qty: <b>${i.qty}</b></div>
+          <button onclick="addToCart('${p.id}')" class="w-full bg-slate-900 text-white font-bold py-2 rounded-xl text-xs mt-2 transition hover:bg-black">Add to Cart</button>
         </div>
       `).join('');
     }
 
-    function toggleModal(id, open) {
-      document.getElementById(id).classList.toggle('open', open);
-    }
-
-    function openCheckout() {
-      if(cart.length === 0) return alert('Cart is empty!');
-      toggleModal('cart-modal', false);
-      toggleModal('checkout-modal', true);
+    function addToCart(id) {
+      const p = allProducts.find(x => x.id === id);
+      if(!p) return;
+      const ex = cart.find(x => x.id === id);
+      if(ex) ex.qty++; else cart.push({ ...p, qty: 1 });
       updateCart();
     }
 
-    async function processOrder() {
-      const name = document.getElementById('cust-name').value.trim();
-      const phone = document.getElementById('cust-phone').value.trim();
-      const city = document.getElementById('cust-city').value;
-      const address = document.getElementById('cust-address').value.trim();
-      const paymentEl = document.querySelector('input[name="payment_method"]:checked');
-      const paymentMethod = paymentEl ? paymentEl.value : 'Cash on Delivery';
+    function updateCart() {
+      document.getElementById('cart-count').innerText = cart.reduce((s, x) => s + x.qty, 0);
+      const items = document.getElementById('cart-items');
+      items.innerHTML = cart.map(i => `
+        <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+          <div>
+            <h4 class="font-bold text-xs">${i.title}</h4>
+            <p class="text-[11px] font-bold text-indigo-600">৳${Number(i.price).toLocaleString()} x ${i.qty}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="changeQty('${i.id}', -1)" class="w-6 h-6 bg-white border border-gray-300 rounded-lg text-xs font-bold">-</button>
+            <span class="text-xs font-bold">${i.qty}</span>
+            <button onclick="changeQty('${i.id}', 1)" class="w-6 h-6 bg-white border border-gray-300 rounded-lg text-xs font-bold">+</button>
+          </div>
+        </div>
+      `).join('');
+      document.getElementById('cart-total').innerText = '৳' + cart.reduce((s, x) => s + (x.price * x.qty), 0).toLocaleString();
+    }
 
-      if (!name || !phone || !address) return alert('Sobi puron korun!');
+    function changeQty(id, delta) {
+      const i = cart.find(x => x.id === id);
+      if(!i) return;
+      i.qty += delta;
+      if(i.qty <= 0) cart = cart.filter(x => x.id !== id);
+      updateCart();
+    }
+
+    function toggleModal(id, show) {
+      document.getElementById(id).classList.toggle('hidden', !show);
+    }
+
+    async function processOrder() {
+      const name = document.getElementById('cust-name').value;
+      const phone = document.getElementById('cust-phone').value;
+      const city = document.getElementById('cust-city').value;
+      const address = document.getElementById('cust-address').value;
+      const subtotal = cart.reduce((s, x) => s + (x.price * x.qty), 0);
+      const delivery = city === 'Inside Dhaka' ? 60 : 120;
 
       const btn = document.getElementById('order-btn');
       btn.innerText = "Processing...";
       btn.disabled = true;
 
-      const subtotal = cart.reduce((s, i) => s + (Number(i.price) * i.qty), 0);
-      const delivery = city === 'Inside Dhaka' ? 60 : 120;
-
       try {
         const res = await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customer: { name, phone, city, address }, paymentMethod, items: cart, total: subtotal + delivery })
+          body: JSON.stringify({ customer: { name, phone, city, address }, paymentMethod: 'Cash on Delivery', items: cart, total: subtotal + delivery })
         });
         const data = await res.json();
-        if (data.success) {
+        if(data.success) {
           cart = [];
           updateCart();
           toggleModal('checkout-modal', false);
-          document.getElementById('res-order-id').innerText = data.orderId;
-          toggleModal('success-modal', true);
+          alert('Order placed successfully!');
         }
-      } catch (e) {} finally {
+      } catch(e) {} finally {
         btn.innerText = "Place Order Now";
         btn.disabled = false;
       }
     }
 
-    fetchPhones();
+    fetchProducts();
   </script>
 </body>
 </html>
