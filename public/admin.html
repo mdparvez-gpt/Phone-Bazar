@@ -3,111 +3,226 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel - Phone Bazar</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Admin Dashboard - Phone Bazar</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #f8fafc; color: #0f172a; padding: 16px; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 16px; border-radius: 16px; border: 1px solid #e2e8f0; }
-    .title { font-size: 20px; font-weight: 800; color: #0f172a; }
-    .live-badge { background: #dcfce7; color: #16a34a; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
-    .dot { width: 8px; height: 8px; background: #16a34a; border-radius: 50%; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-    .orders-list { display: flex; flex-direction: column; gap: 12px; }
-    .order-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 10px; }
-    .order-id { font-weight: 800; color: #4f46e5; font-size: 14px; }
-    .order-status { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; text-transform: uppercase; }
-    .status-Pending { background: #fef3c7; color: #d97706; }
-    .status-Completed { background: #dcfce7; color: #16a34a; }
-    .status-Cancelled { background: #fee2e2; color: #dc2626; }
-
-    .cust-info { font-size: 13px; margin-bottom: 8px; color: #334155; }
-    .cust-info b { color: #0f172a; }
-    .items-box { background: #f8fafc; padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: #f1f5f9; color: #0f172a; padding: 12px; }
     
-    .actions { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 10px; }
-    .total-price { font-size: 15px; font-weight: 800; color: #4f46e5; }
-    select { padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 700; outline: none; }
+    /* Login Screen */
+    #login-screen { max-width: 360px; margin: 80px auto; background: #fff; padding: 24px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; text-align: center; }
+    #login-screen h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    #login-screen input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 16px; margin: 16px 0; outline: none; text-align: center; font-weight: 700; letter-spacing: 2px; }
+    #login-screen button { width: 100%; padding: 12px; background: #4f46e5; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+    /* Admin Panel Main */
+    #admin-app { display: none; max-width: 600px; margin: 0 auto; }
+    .header { background: #fff; padding: 16px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 18px; font-weight: 800; }
+
+    /* Tabs Navigation */
+    .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tab-btn { flex: 1; padding: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; color: #64748b; }
+    .tab-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Orders UI */
+    .order-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; margin-bottom: 10px; }
+    .order-header { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+    .cust-box { font-size: 13px; line-height: 1.4; color: #334155; }
+    .items-box { background: #f8fafc; padding: 8px 10px; border-radius: 8px; font-size: 12px; margin: 8px 0; border: 1px solid #e2e8f0; }
+
+    /* Product Management UI */
+    .add-form { background: #fff; padding: 14px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .add-form h3 { font-size: 14px; font-weight: 800; }
+    .add-form input, .add-form select { padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; outline: none; }
+    .add-form button { padding: 10px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+    .prod-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .prod-info { font-size: 13px; font-weight: 700; }
+    .prod-stock { font-size: 11px; color: #64748b; font-weight: 600; }
+    .del-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <div class="title">⚡ Realtime Admin Orders</div>
-    <div class="live-badge"><div class="dot"></div> LIVE SYNC</div>
+  <!-- 1. LOGIN SCREEN -->
+  <div id="login-screen">
+    <h2>🔒 Admin Login</h2>
+    <p style="font-size: 12px; color: #64748b;">Enter Passcode to Access Panel</p>
+    <input type="password" id="admin-pass" placeholder="Enter PIN (Default: 1234)">
+    <button onclick="checkAuth()">Login Dashboard</button>
   </div>
 
-  <div id="orders-container" class="orders-list">
-    <p style="text-align: center; color: #64748b;">Loading Orders...</p>
+  <!-- 2. ADMIN MAIN PANEL -->
+  <div id="admin-app">
+    <div class="header">
+      <h1>⚡ Phone Bazar Admin</h1>
+      <button onclick="logout()" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 11px; font-weight: 700;">Logout</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab-btn active" onclick="switchTab('orders-tab', this)">📦 Orders History</div>
+      <div class="tab-btn" onclick="switchTab('products-tab', this)">📱 Manage Stock</div>
+    </div>
+
+    <!-- ORDERS TAB -->
+    <div id="orders-tab" class="tab-content active">
+      <div id="orders-list"><p style="text-align: center; font-size: 13px; color: #64748b;">Loading Orders...</p></div>
+    </div>
+
+    <!-- PRODUCTS TAB -->
+    <div id="products-tab" class="tab-content">
+      <div class="add-form">
+        <h3>➕ Add New Phone / Product</h3>
+        <input type="text" id="p-title" placeholder="Product Name (e.g. iPhone 15 Pro)">
+        <input type="number" id="p-price" placeholder="Price (৳)">
+        <select id="p-brand">
+          <option value="Apple">Apple</option>
+          <option value="Samsung">Samsung</option>
+          <option value="Xiaomi">Xiaomi</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="p-img" placeholder="Image URL">
+        <input type="number" id="p-stock" placeholder="Stock Quantity (e.g. 10)" value="10">
+        <button onclick="addProduct()">Add Product</button>
+      </div>
+
+      <h3>📦 Inventory / Stock List</h3>
+      <div id="products-list" style="margin-top: 10px;"><p style="text-align: center; font-size: 13px; color: #64748b;">Loading Products...</p></div>
+    </div>
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://ijygpiafxvyydzqsqhzo.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_C_In2UGnHsPgbuvgcgc7KQ_sCtHn_FV';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const ADMIN_PIN = "1234"; // Admin Passcode
 
-    async function loadOrders() {
+    function checkAuth() {
+      const pin = document.getElementById('admin-pass').value;
+      if(pin === ADMIN_PIN) {
+        localStorage.setItem('admin_auth', 'true');
+        showDashboard();
+      } else {
+        alert('Wrong Admin PIN! Try 1234');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('admin_auth');
+      location.reload();
+    }
+
+    function showDashboard() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-app').style.display = 'block';
+      fetchOrders();
+      fetchProducts();
+    }
+
+    if(localStorage.getItem('admin_auth') === 'true') {
+      showDashboard();
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // --- FETCH ORDERS ---
+    async function fetchOrders() {
       try {
         const res = await fetch('/api/orders');
-        const orders = await res.json();
-        renderOrders(orders);
-      } catch(e) {}
-    }
-
-    function renderOrders(orders) {
-      const container = document.getElementById('orders-container');
-      if(!orders || orders.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #64748b;">No orders found yet.</p>';
-        return;
+        const data = await res.json();
+        const container = document.getElementById('orders-list');
+        if(!data || data.length === 0) {
+          container.innerHTML = '<p style="text-align:center; color:#64748b; padding: 20px;">No Orders Received Yet!</p>';
+          return;
+        }
+        container.innerHTML = data.map(o => `
+          <div class="order-card">
+            <div class="order-header">
+              <span style="font-weight:800; color:#4f46e5; font-size:13px;">${o.id}</span>
+              <span style="font-size:11px; font-weight:800; background:#fef3c7; color:#d97706; padding:2px 8px; border-radius:6px;">${o.status || 'Pending'}</span>
+            </div>
+            <div class="cust-box">
+              <b>Customer:</b> ${o.customer?.name || 'N/A'} (${o.customer?.phone || ''})<br>
+              <b>Address:</b> ${o.customer?.address || ''}, ${o.customer?.city || ''}<br>
+              <b>Payment:</b> ${o.paymentMethod || 'COD'}
+            </div>
+            <div class="items-box">
+              ${(o.items || []).map(i => `• ${i.title} (x${i.qty}) - ৳${i.price}`).join('<br>')}
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+              <span style="font-weight:800; color:#0f172a; font-size:14px;">Total: ৳${o.total || 0}</span>
+              <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; font-size:12px; border-radius:6px;">
+                <option value="Pending" ${o.status==='Pending'?'selected':''}>Pending</option>
+                <option value="Completed" ${o.status==='Completed'?'selected':''}>Completed</option>
+                <option value="Cancelled" ${o.status==='Cancelled'?'selected':''}>Cancelled</option>
+              </select>
+            </div>
+          </div>
+        `).join('');
+      } catch(e) {
+        document.getElementById('orders-list').innerHTML = '<p style="text-align:center; color:red;">Failed to load orders.</p>';
       }
-
-      container.innerHTML = orders.map(o => `
-        <div class="order-card">
-          <div class="order-header">
-            <span class="order-id">${o.id}</span>
-            <span class="order-status status-${o.status}">${o.status}</span>
-          </div>
-          <div class="cust-info">
-            <b>Customer:</b> ${o.customer?.name || 'N/A'} (${o.customer?.phone || ''})<br>
-            <b>Address:</b> ${o.customer?.address || ''}, ${o.customer?.city || ''}<br>
-            <b>Payment:</b> ${o.paymentMethod || 'COD'}
-          </div>
-          <div class="items-box">
-            <b>Items Ordered:</b><br>
-            ${(o.items || []).map(i => `- ${i.title} (x${i.qty}) - ৳${i.price}`).join('<br>')}
-          </div>
-          <div class="actions">
-            <div class="total-price">৳${Number(o.total || 0).toLocaleString()}</div>
-            <select onchange="updateStatus('${o.id}', this.value)">
-              <option value="Pending" ${o.status==='Pending'?'selected':''}>Pending</option>
-              <option value="Completed" ${o.status==='Completed'?'selected':''}>Completed</option>
-              <option value="Cancelled" ${o.status==='Cancelled'?'selected':''}>Cancelled</option>
-            </select>
-          </div>
-        </div>
-      `).join('');
     }
 
-    async function updateStatus(id, status) {
+    async function updateOrderStatus(id, status) {
       await fetch('/api/orders/' + id, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
-      loadOrders();
+      fetchOrders();
     }
 
-    // --- REALTIME LISTENERS ---
-    supabase
-      .channel('schema-db-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
-        loadOrders();
-      })
-      .subscribe();
+    // --- FETCH PRODUCTS & STOCK ---
+    async function fetchProducts() {
+      try {
+        const res = await fetch('/api/phones');
+        const data = await res.json();
+        const container = document.getElementById('products-list');
+        container.innerHTML = data.map(p => `
+          <div class="prod-card">
+            <div>
+              <div class="prod-info">${p.title} - ৳${p.price}</div>
+              <div class="prod-stock">Brand: ${p.brand} | Stock: <b>${p.stock || 10} Units</b></div>
+            </div>
+            <button class="del-btn" onclick="deleteProduct('${p.id}')">Delete</button>
+          </div>
+        `).join('');
+      } catch(e) {}
+    }
 
-    loadOrders();
+    async function addProduct() {
+      const title = document.getElementById('p-title').value;
+      const price = document.getElementById('p-price').value;
+      const brand = document.getElementById('p-brand').value;
+      const image = document.getElementById('p-img').value;
+      const stock = document.getElementById('p-stock').value;
+
+      if(!title || !price) return alert('Name & Price Required!');
+
+      await fetch('/api/phones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, price: Number(price), brand, image, stock: Number(stock) })
+      });
+
+      alert('Product Added Successfully!');
+      document.getElementById('p-title').value = '';
+      document.getElementById('p-price').value = '';
+      fetchProducts();
+    }
+
+    async function deleteProduct(id) {
+      if(!confirm('Delete this product?')) return;
+      await fetch('/api/phones/' + id, { method: 'DELETE' });
+      fetchProducts();
+    }
   </script>
 </body>
 </html>
