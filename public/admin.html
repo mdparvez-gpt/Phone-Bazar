@@ -3,61 +3,110 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel</title>
+  <title>Admin Panel - Phone Bazar</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #f1f5f9; color: #0f172a; padding-bottom: 40px; }
-    header { background: #0f172a; color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
-    .container { max-width: 800px; margin: 16px auto; padding: 0 12px; }
-    .card { background: #fff; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; margin-bottom: 12px; }
-    .order-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; margin-top: 10px; font-size: 12px; }
-    .btn { background: #4f46e5; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    body { background: #f8fafc; color: #0f172a; padding: 16px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 16px; border-radius: 16px; border: 1px solid #e2e8f0; }
+    .title { font-size: 20px; font-weight: 800; color: #0f172a; }
+    .live-badge { background: #dcfce7; color: #16a34a; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; background: #16a34a; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    .orders-list { display: flex; flex-direction: column; gap: 12px; }
+    .order-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 10px; }
+    .order-id { font-weight: 800; color: #4f46e5; font-size: 14px; }
+    .order-status { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; text-transform: uppercase; }
+    .status-Pending { background: #fef3c7; color: #d97706; }
+    .status-Completed { background: #dcfce7; color: #16a34a; }
+    .status-Cancelled { background: #fee2e2; color: #dc2626; }
+
+    .cust-info { font-size: 13px; margin-bottom: 8px; color: #334155; }
+    .cust-info b { color: #0f172a; }
+    .items-box { background: #f8fafc; padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+    
+    .actions { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .total-price { font-size: 15px; font-weight: 800; color: #4f46e5; }
+    select { padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 700; outline: none; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h2 style="font-size: 14px; color: #818cf8;">PHONE BAZAR ADMIN</h2>
-    <button onclick="window.location.href='/'" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer;">Logout</button>
-  </header>
+  <div class="header">
+    <div class="title">⚡ Realtime Admin Orders</div>
+    <div class="live-badge"><div class="dot"></div> LIVE SYNC</div>
+  </div>
 
-  <div class="container">
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-        <h3 style="font-size: 14px;">Orders History</h3>
-        <button onclick="loadOrders()" class="btn">🔄 Refresh</button>
-      </div>
-      <div id="orders-list"><p style="font-size: 12px; color: #94a3b8; text-align: center; padding: 16px;">Loading...</p></div>
-    </div>
+  <div id="orders-container" class="orders-list">
+    <p style="text-align: center; color: #64748b;">Loading Orders...</p>
   </div>
 
   <script>
+    const SUPABASE_URL = 'https://ijygpiafxvyydzqsqhzo.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_C_In2UGnHsPgbuvgcgc7KQ_sCtHn_FV';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     async function loadOrders() {
       try {
         const res = await fetch('/api/orders');
         const orders = await res.json();
-        const container = document.getElementById('orders-list');
-
-        if (!orders.length) {
-          container.innerHTML = `<p style="font-size: 12px; color: #94a3b8; text-align: center; padding: 16px;">No orders found!</p>`;
-          return;
-        }
-
-        container.innerHTML = orders.map(o => `
-          <div class="order-box">
-            <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px;">
-              <span style="color: #4f46e5;">${o.id}</span>
-              <span style="color: #16a34a;">৳${o.total} (${o.paymentMethod})</span>
-            </div>
-            <div><b>${o.customer?.name || 'N/A'}</b> (${o.customer?.phone || ''})</div>
-            <div style="color: #64748b; font-size: 11px;">${o.customer?.address || ''}</div>
-            <div style="margin-top: 6px; font-size: 11px;"><b>Status:</b> ${o.status}</div>
-          </div>
-        `).join('');
-      } catch (e) {
-        document.getElementById('orders-list').innerHTML = `<p style="color: #ef4444; font-size: 12px; text-align: center;">Error loading orders!</p>`;
-      }
+        renderOrders(orders);
+      } catch(e) {}
     }
+
+    function renderOrders(orders) {
+      const container = document.getElementById('orders-container');
+      if(!orders || orders.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #64748b;">No orders found yet.</p>';
+        return;
+      }
+
+      container.innerHTML = orders.map(o => `
+        <div class="order-card">
+          <div class="order-header">
+            <span class="order-id">${o.id}</span>
+            <span class="order-status status-${o.status}">${o.status}</span>
+          </div>
+          <div class="cust-info">
+            <b>Customer:</b> ${o.customer?.name || 'N/A'} (${o.customer?.phone || ''})<br>
+            <b>Address:</b> ${o.customer?.address || ''}, ${o.customer?.city || ''}<br>
+            <b>Payment:</b> ${o.paymentMethod || 'COD'}
+          </div>
+          <div class="items-box">
+            <b>Items Ordered:</b><br>
+            ${(o.items || []).map(i => `- ${i.title} (x${i.qty}) - ৳${i.price}`).join('<br>')}
+          </div>
+          <div class="actions">
+            <div class="total-price">৳${Number(o.total || 0).toLocaleString()}</div>
+            <select onchange="updateStatus('${o.id}', this.value)">
+              <option value="Pending" ${o.status==='Pending'?'selected':''}>Pending</option>
+              <option value="Completed" ${o.status==='Completed'?'selected':''}>Completed</option>
+              <option value="Cancelled" ${o.status==='Cancelled'?'selected':''}>Cancelled</option>
+            </select>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function updateStatus(id, status) {
+      await fetch('/api/orders/' + id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadOrders();
+    }
+
+    // --- REALTIME LISTENERS ---
+    supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+        loadOrders();
+      })
+      .subscribe();
+
     loadOrders();
   </script>
 </body>
